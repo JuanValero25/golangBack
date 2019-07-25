@@ -1,4 +1,6 @@
 package main
+
+/*
 import (
 	"fmt"
 	"math/rand"
@@ -57,4 +59,4 @@ func main() {
 		go writer(wsCh, &m, &wg)
 	}
 	wg.Wait()
-}
+}*/
