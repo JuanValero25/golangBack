@@ -1,14 +1,21 @@
 package main
 
 import (
-	"awesomeProject/repository"
 	"fmt"
 	"net/http"
+	"time"
 )
 
-var( r  repository.MockRepository)
+//var( r  repository.MockRepository)
 
-func homePage(w http.ResponseWriter, r *http.Request){
+type Transaction struct {
+	ID            string    `json:"id"`
+	Type          string    `json:"type"`
+	Amount        int       `json:"amount"`
+	EffectiveDate time.Time `json:"effectiveDate"`
+}
+
+func homePage(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Welcome to the HomePage!")
 	fmt.Println("Endpoint Hit: homePage")
 }
