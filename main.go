@@ -2,22 +2,22 @@ package main
 
 import (
 	"fmt"
+	"github.com/JuanValero25/golangBack/repository"
 	"net/http"
-	"time"
 )
 
-//var( r  repository.MockRepository)
-
-type Transaction struct {
-	ID            string    `json:"id"`
-	Type          string    `json:"type"`
-	Amount        int       `json:"amount"`
-	EffectiveDate time.Time `json:"effectiveDate"`
-}
+var (
+	repositori = repository.MockRepository{}
+)
 
 func homePage(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Welcome to the HomePage!")
 	fmt.Println("Endpoint Hit: homePage")
+}
+
+func readAllTransaction(w http.ResponseWriter, r *http.Request) {
+
+	fmt.Fprintf(w, repositori)
 }
 
 func handleRequests() {
