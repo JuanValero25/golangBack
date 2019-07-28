@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"math/rand"
+	"github.com/google/uuid"
 	"sync"
 	"time"
 )
@@ -13,34 +13,64 @@ type Transaction struct {
 	EffectiveDate time.Time `json:"effectiveDate"`
 }
 
+type TrasactionError struct {
+	Message string `json:"Message"`
+}
+
+func (t *TrasactionError) Error() string {
+	return "Error Message : " + t.Message
+}
+
 var (
-	m              sync.RWMutex
-	mapTransaction = make(map[string]*Transaction)
-	values         []*Transaction
+	mutex          sync.RWMutex
+	mockedDBMap    = make(map[string]*Transaction)
+	allTransaction []*Transaction
 )
 
 type MockRepository struct {
 }
 
-func sleep() {
-	time.Sleep(time.Duration(rand.Intn(1000)) * time.Millisecond)
-}
-func (repository *MockRepository) reader(trasanctionId *string) Transaction {
-	m.RLock()
-	sleep()
-	transactionFound := mapTransaction[*trasanctionId]
-	m.RUnlock()
-	return *transactionFound
-}
-
-func (repository *MockRepository) readerAll() *[]*Transaction {
-	return &values
+func (c *MockRepository) GetTransactionById(trasanctionId string) (*Transaction, error) {
+	if !IsValidUUID(trasanctionId) {
+		return nil, &TrasactionError{"id is not valid"}
+	}
+	mutex.Lock()
+	defer mutex.Unlock()
+	transactionFound := mockedDBMap[trasanctionId]
+	return transactionFound, nil
 }
 
-func (repository *MockRepository) writer(transactionInsert *Transaction) {
-	m.Lock()
-	sleep()
-	mapTransaction[transactionInsert.ID] = transactionInsert
-	values = append(values, transactionInsert)
-	m.Unlock()
+func (c *MockRepository) GetAllTransaction() *[]*Transaction {
+	mutex.Lock()
+	defer mutex.Unlock()
+	return &allTransaction
+}
+
+func (c *MockRepository) PostTransaction(transaction *Transaction) error {
+	if IsInValidTransaction(transaction) {
+		return &TrasactionError{Message: "invalid transaction"}
+	}
+	mutex.Lock()
+	defer mutex.Unlock()
+	transaction.EffectiveDate = time.Now()
+	transaction.ID = uuid.New().String()
+	mockedDBMap[transaction.ID] = transaction
+	allTransaction = append(allTransaction, transaction)
+	return nil
+}
+
+func IsValidUUID(u string) bool {
+	_, err := uuid.Parse(u)
+	return err == nil
+}
+
+func IsInValidTransaction(transactionInsert *Transaction) bool {
+	if transactionInsert.Amount == 0 {
+		return true
+	}
+
+	if len(transactionInsert.Type) > 1 {
+		return true
+	}
+	return false
 }
