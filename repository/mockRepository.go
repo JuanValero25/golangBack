@@ -88,12 +88,13 @@ func SumTransaction(transaction *Transaction) {
 }
 
 func IsInValidTransaction(transactionInsert *Transaction) bool {
-	fmt.Print(transactionInsert.Amount.MinPrec())
-	if transactionInsert.Amount.MinPrec() == 0 {
+	amountValue , _  := transactionInsert.Amount.Uint64()
+	fmt.Print("the precion amount is ", amountValue)
+	if amountValue == 0 {
 		return true
 	}
 
-	if len(transactionInsert.Type) > 1 {
+	if transactionInsert.Type != Credit || transactionInsert.Type != Debit {
 		return true
 	}
 	return false
