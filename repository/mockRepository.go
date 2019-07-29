@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"fmt"
 	"github.com/google/uuid"
 	"math/big"
 	"sync"
@@ -87,6 +88,7 @@ func SumTransaction(transaction *Transaction) {
 }
 
 func IsInValidTransaction(transactionInsert *Transaction) bool {
+	fmt.Print(transactionInsert.Amount.MinPrec())
 	if transactionInsert.Amount.MinPrec() == 0 {
 		return true
 	}
