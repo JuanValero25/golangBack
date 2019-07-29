@@ -7,11 +7,18 @@ import (
 	"time"
 )
 
+type TransactionType string
+
+const (
+	Debit  TransactionType = "debit"
+	Credit TransactionType = "credit"
+)
+
 type Transaction struct {
-	ID            string    `json:"id"`
-	Type          string    `json:"type"`
-	Amount        big.Rat   `json:"amount"`
-	EffectiveDate time.Time `json:"effectiveDate"`
+	ID            string          `json:"id"`
+	Type          TransactionType `json:"type"`
+	Amount        big.Float       `json:"amount"`
+	EffectiveDate time.Time       `json:"effectiveDate"`
 }
 
 type TrasactionError struct {
@@ -26,7 +33,7 @@ var (
 	mutex             sync.RWMutex
 	mockedDBMap       = make(map[string]*Transaction)
 	allTransaction    []*Transaction
-	sumAllTransaction = big.NewRat(0, 0)
+	sumAllTransaction big.Float
 )
 
 type MockRepository struct {
@@ -58,7 +65,7 @@ func (c *MockRepository) PostTransaction(transaction *Transaction) error {
 	transaction.ID = uuid.New().String()
 	mockedDBMap[transaction.ID] = transaction
 	allTransaction = append(allTransaction, transaction)
-	sumAllTransaction.Add(sumAllTransaction, &transaction.Amount)
+	SumTransaction(transaction)
 	return nil
 }
 
@@ -67,8 +74,20 @@ func IsValidUUID(u string) bool {
 	return err == nil
 }
 
+func SumTransaction(transaction *Transaction) {
+
+	switch transaction.Type {
+	case Debit:
+		sumAllTransaction = *sumAllTransaction.Sub(&sumAllTransaction, &transaction.Amount)
+
+	case Credit:
+		sumAllTransaction = *sumAllTransaction.Add(&sumAllTransaction, &transaction.Amount)
+	}
+
+}
+
 func IsInValidTransaction(transactionInsert *Transaction) bool {
-	if transactionInsert.Amount.Num().Int64() == 0 {
+	if transactionInsert.Amount.MinPrec() == 0 {
 		return true
 	}
 
