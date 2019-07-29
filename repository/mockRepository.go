@@ -2,6 +2,7 @@ package repository
 
 import (
 	"github.com/google/uuid"
+	"math/big"
 	"sync"
 	"time"
 )
@@ -9,7 +10,7 @@ import (
 type Transaction struct {
 	ID            string    `json:"id"`
 	Type          string    `json:"type"`
-	Amount        int       `json:"amount"`
+	Amount        big.Rat   `json:"amount"`
 	EffectiveDate time.Time `json:"effectiveDate"`
 }
 
@@ -22,9 +23,10 @@ func (t *TrasactionError) Error() string {
 }
 
 var (
-	mutex          sync.RWMutex
-	mockedDBMap    = make(map[string]*Transaction)
-	allTransaction []*Transaction
+	mutex             sync.RWMutex
+	mockedDBMap       = make(map[string]*Transaction)
+	allTransaction    []*Transaction
+	sumAllTransaction = big.NewRat(0, 0)
 )
 
 type MockRepository struct {
@@ -56,6 +58,7 @@ func (c *MockRepository) PostTransaction(transaction *Transaction) error {
 	transaction.ID = uuid.New().String()
 	mockedDBMap[transaction.ID] = transaction
 	allTransaction = append(allTransaction, transaction)
+	sumAllTransaction.Add(sumAllTransaction, &transaction.Amount)
 	return nil
 }
 
@@ -65,7 +68,7 @@ func IsValidUUID(u string) bool {
 }
 
 func IsInValidTransaction(transactionInsert *Transaction) bool {
-	if transactionInsert.Amount == 0 {
+	if transactionInsert.Amount.Num().Int64() == 0 {
 		return true
 	}
 
